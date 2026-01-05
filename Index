@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Budget Vacances - Pilote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .tab-active { border-bottom: 4px solid #3b82f6; color: #3b82f6; background-color: #f8fafc; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .card { transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-20">
+
+    <div id="app" class="max-w-5xl mx-auto px-4 py-8">
+        <!-- En-tête -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="text-left">
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">VIVA BUDGET</h1>
+                <p class="text-slate-500 font-medium">Planification pour 4 personnes</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="resetData()" class="text-xs bg-slate-200 hover:bg-red-100 hover:text-red-600 text-slate-600 px-3 py-2 rounded-lg font-bold transition-colors">
+                    RÉINITIALISER TOUT
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation par onglets -->
+        <nav class="flex overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200 mb-8 p-1">
+            <button onclick="switchTab('autriche')" id="btn-autriche" class="tab-btn flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all whitespace-nowrap">🎿 Autriche (Ski)</button>
+            <button onclick="switchTab('antilles')" id="btn-antilles" class="tab-btn flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all whitespace-nowrap">🌴 Antilles</button>
+            <button onclick="switchTab('malaisie')" id="btn-malaisie" class="tab-btn flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all whitespace-nowrap">⛩️ Malaisie</button>
+            <button onclick="switchTab('vienne')" id="btn-vienne" class="tab-btn flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all whitespace-nowrap">🏛️ Vienne</button>
+        </nav>
+
+        <!-- Résumé de l'onglet actif (Sticky) -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 mb-8 sticky top-4 z-20 backdrop-blur-md bg-white/90">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div class="text-center md:text-left border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0">
+                    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1">Dépenses Totales</p>
+                    <p id="display-total-expenses" class="text-3xl font-black text-rose-600">0.00 €</p>
+                </div>
+                <div class="text-center md:text-left border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0">
+                    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1">Déjà Budgétisé</p>
+                    <p id="display-total-budget" class="text-3xl font-black text-emerald-600">0.00 €</p>
+                </div>
+                <div class="text-center md:text-left pt-2 md:pt-0">
+                    <p class="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-1">Différence (Solde)</p>
+                    <p id="display-balance" class="text-3xl font-black text-blue-600">0.00 €</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- SECTION DÉPENSES -->
+            <div class="space-y-6">
+                <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                    <div class="w-2 h-6 bg-rose-500 rounded-full"></div>
+                    POSTES DE DÉPENSES
+                </h2>
+
+                <!-- Transport -->
+                <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700">✈️ Transport (Train/Avion)</h3>
+                        <span class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500 font-bold uppercase">x4 Pers.</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Coût par personne</label>
+                            <div class="relative">
+                                <input type="number" id="input-transport-pp" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                                <span class="absolute right-3 top-3 text-slate-400">€</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Sous-total</label>
+                            <p id="calc-transport-total" class="text-xl font-bold text-slate-800">0.00 €</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobilité Locale -->
+                <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4">🚗 Mobilité sur place</h3>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Location voiture / Taxis locaux</label>
+                        <div class="relative">
+                            <input type="number" id="input-mobility-local" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                            <span class="absolute right-3 top-3 text-slate-400">€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hébergement -->
+                <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4">🏨 Hébergement</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nombre de nuits</label>
+                            <input type="number" id="input-nights" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Prix moyen / nuit</label>
+                            <div class="relative">
+                                <input type="number" id="input-night-price" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                                <span class="absolute right-3 top-3 text-slate-400">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vie sur place -->
+                <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4">🥗 Vie quotidienne (Repas...)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nombre de jours</label>
+                            <input type="number" id="input-days-local" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Budget / jour</label>
+                            <div class="relative">
+                                <input type="number" id="input-daily-cost" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                                <span class="absolute right-3 top-3 text-slate-400">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activités -->
+                <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4">🎡 Activités & Loisirs</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nombre de jours d'act.</label>
+                            <input type="number" id="input-activity-days" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Prix moy. / jour</label>
+                            <div class="relative">
+                                <input type="number" id="input-activity-cost" oninput="calculate()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+                                <span class="absolute right-3 top-3 text-slate-400">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION BUDGETS DÉJÀ ALLOUÉS -->
+            <div class="space-y-6">
+                <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                    <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+                    DÉJÀ BUDGÉTISÉ
+                </h2>
+
+                <div class="card bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-sm text-slate-500 mb-6 italic text-center">Inscrivez ici les enveloppes que vous avez déjà mises de côté ou prévues.</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Enveloppe Mobilité (Taxis, transferts...)</label>
+                            <div class="relative">
+                                <input type="number" id="budget-mobility" oninput="calculate()" class="w-full p-4 bg-emerald-50 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-emerald-800 text-lg">
+                                <span class="absolute right-4 top-4 text-emerald-400 text-lg">€</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Budget "Week-end du mois"</label>
+                            <div class="relative">
+                                <input type="number" id="budget-weekend" oninput="calculate()" class="w-full p-4 bg-emerald-50 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-emerald-800 text-lg">
+                                <span class="absolute right-4 top-4 text-emerald-400 text-lg">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-600 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-black mb-2 uppercase italic tracking-tighter">Astuce Voyageur</h3>
+                        <p class="text-sm text-blue-100 opacity-90 leading-relaxed font-medium">
+                            En utilisant GitHub Pages, vous pouvez ouvrir ce tableau sur votre smartphone pendant le séjour pour vérifier si vous respectez vos prévisions en temps réel.
+                        </p>
+                    </div>
+                    <!-- Décoration fond -->
+                    <div class="absolute -right-4 -bottom-4 opacity-10">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clé pour le stockage local
+        const STORAGE_KEY = 'viva_budget_data_v1';
+        
+        let currentTab = 'autriche';
+        
+        // Données par défaut
+        const defaultData = {
+            'autriche': { transportPP: 0, mobilityLocal: 0, nights: 0, nightPrice: 0, daysLocal: 0, dailyCost: 0, activityDays: 0, activityCost: 0, budgetMob: 0, budgetWk: 0 },
+            'antilles': { transportPP: 0, mobilityLocal: 0, nights: 0, nightPrice: 0, daysLocal: 0, dailyCost: 0, activityDays: 0, activityCost: 0, budgetMob: 0, budgetWk: 0 },
+            'malaisie': { transportPP: 0, mobilityLocal: 0, nights: 0, nightPrice: 0, daysLocal: 0, dailyCost: 0, activityDays: 0, activityCost: 0, budgetMob: 0, budgetWk: 0 },
+            'vienne': { transportPP: 0, mobilityLocal: 0, nights: 0, nightPrice: 0, daysLocal: 0, dailyCost: 0, activityDays: 0, activityCost: 0, budgetMob: 0, budgetWk: 0 }
+        };
+
+        let tripData = {};
+
+        // Charger les données depuis LocalStorage ou utiliser les défauts
+        function initData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    tripData = JSON.parse(saved);
+                } catch(e) {
+                    tripData = JSON.parse(JSON.stringify(defaultData));
+                }
+            } else {
+                tripData = JSON.parse(JSON.stringify(defaultData));
+            }
+        }
+
+        function switchTab(tabId) {
+            saveCurrentState(); // Sauvegarder l'état actuel avant de changer
+            
+            currentTab = tabId;
+            
+            // Mise à jour visuelle des onglets
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active', 'text-blue-600'));
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('tab-active', 'text-blue-600');
+            
+            // Charger les champs
+            const data = tripData[tabId];
+            document.getElementById('input-transport-pp').value = data.transportPP || '';
+            document.getElementById('input-mobility-local').value = data.mobilityLocal || '';
+            document.getElementById('input-nights').value = data.nights || '';
+            document.getElementById('input-night-price').value = data.nightPrice || '';
+            document.getElementById('input-days-local').value = data.daysLocal || '';
+            document.getElementById('input-daily-cost').value = data.dailyCost || '';
+            document.getElementById('input-activity-days').value = data.activityDays || '';
+            document.getElementById('input-activity-cost').value = data.activityCost || '';
+            document.getElementById('budget-mobility').value = data.budgetMob || '';
+            document.getElementById('budget-weekend').value = data.budgetWk || '';
+            
+            calculate();
+        }
+
+        function saveCurrentState() {
+            if (!currentTab) return;
+            
+            const data = tripData[currentTab];
+            data.transportPP = parseFloat(document.getElementById('input-transport-pp').value) || 0;
+            data.mobilityLocal = parseFloat(document.getElementById('input-mobility-local').value) || 0;
+            data.nights = parseFloat(document.getElementById('input-nights').value) || 0;
+            data.nightPrice = parseFloat(document.getElementById('input-night-price').value) || 0;
+            data.daysLocal = parseFloat(document.getElementById('input-days-local').value) || 0;
+            data.dailyCost = parseFloat(document.getElementById('input-daily-cost').value) || 0;
+            data.activityDays = parseFloat(document.getElementById('input-activity-days').value) || 0;
+            data.activityCost = parseFloat(document.getElementById('input-activity-cost').value) || 0;
+            data.budgetMob = parseFloat(document.getElementById('budget-mobility').value) || 0;
+            data.budgetWk = parseFloat(document.getElementById('budget-weekend').value) || 0;
+            
+            // Sauvegarder dans le stockage permanent du navigateur
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tripData));
+        }
+
+        function calculate() {
+            const transportPP = parseFloat(document.getElementById('input-transport-pp').value) || 0;
+            const mobilityLocal = parseFloat(document.getElementById('input-mobility-local').value) || 0;
+            const nights = parseFloat(document.getElementById('input-nights').value) || 0;
+            const nightPrice = parseFloat(document.getElementById('input-night-price').value) || 0;
+            const daysLocal = parseFloat(document.getElementById('input-days-local').value) || 0;
+            const dailyCost = parseFloat(document.getElementById('input-daily-cost').value) || 0;
+            const actDays = parseFloat(document.getElementById('input-activity-days').value) || 0;
+            const actCost = parseFloat(document.getElementById('input-activity-cost').value) || 0;
+            
+            const budgetMob = parseFloat(document.getElementById('budget-mobility').value) || 0;
+            const budgetWk = parseFloat(document.getElementById('budget-weekend').value) || 0;
+
+            const transportTotal = transportPP * 4;
+            const lodgingTotal = nights * nightPrice;
+            const livingTotal = daysLocal * dailyCost;
+            const activitiesTotal = actDays * actCost;
+            
+            const totalExpenses = transportTotal + mobilityLocal + lodgingTotal + livingTotal + activitiesTotal;
+            const totalBudgeted = budgetMob + budgetWk;
+            const balance = totalBudgeted - totalExpenses;
+
+            // Affichage
+            document.getElementById('calc-transport-total').innerText = transportTotal.toLocaleString('fr-FR') + " €";
+            document.getElementById('display-total-expenses').innerText = totalExpenses.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + " €";
+            document.getElementById('display-total-budget').innerText = totalBudgeted.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + " €";
+            
+            const balanceEl = document.getElementById('display-balance');
+            balanceEl.innerText = (balance > 0 ? "+" : "") + balance.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + " €";
+            
+            if (balance >= 0) {
+                balanceEl.className = "text-3xl font-black text-emerald-600";
+            } else {
+                balanceEl.className = "text-3xl font-black text-rose-600";
+            }
+            
+            saveCurrentState();
+        }
+
+        function resetData() {
+            if (confirm("Voulez-vous vraiment effacer TOUTES les données saisies pour les 4 voyages ?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                initData();
+                switchTab(currentTab);
+            }
+        }
+
+        // Démarrage
+        window.onload = () => {
+            initData();
+            switchTab('autriche');
+        };
+    </script>
+</body>
+</html>
+
